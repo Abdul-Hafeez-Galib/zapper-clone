@@ -7,26 +7,6 @@ function Nfts({ wallet, chain, nfts, setNfts, filteredNfts, setFilteredNfts }) {
   const [nameFilter, setNameFilter] = useState("");
   const [idFilter, setIdFilter] = useState("");
 
-  useEffect(() => {
-    if (idFilter.length === 0 && nameFilter.length === 0) {
-      return setFilteredNfts(nfts);
-    }
-
-    let filNfts = [];
-
-    for (let i = 0; i < nfts.length; i++) {
-      if (nfts[i].name.toLowerCase().includes(nameFilter) && idFilter.length === 0) {
-        filNfts.push(nfts[i]);
-      } else if (nfts[i].token_id.includes(idFilter) && nameFilter.length === 0) {
-        filNfts.push(nfts[i]);
-      } else if (nfts[i].token_id.includes(idFilter) && nfts[i].name.toLowerCase().includes(nameFilter)) {
-        filNfts.push(nfts[i]);
-      }
-    }
-
-    setFilteredNfts(filNfts);
-  }, [nameFilter, idFilter]);
-
   async function getUserNfts() {
     const response = await axios.get(`${process.env.API_URL || "http://localhost:8080"}/nftBalance`, {
       params: {
@@ -38,24 +18,54 @@ function Nfts({ wallet, chain, nfts, setNfts, filteredNfts, setFilteredNfts }) {
     if (response.data.result) {
       nftProcessing(response.data.result);
     }
+  }
 
-    function nftProcessing(t) {
-      for (let i = 0; i < t.length; i++) {
-        let meta = JSON.parse(t[i].metadata);
+  function nftProcessing(t) {
+    for (let i = 0; i < t.length; i++) {
+      let meta = JSON.parse(t[i].metadata);
 
-        if (meta && meta.image) {
-          if (meta.image.includes(".")) {
-            t[i].image = meta.image;
-          } else {
-            t[i].image = "https://ipfs.moralis.io:2053/ipfs/" + meta.image;
-          }
+      if (meta && meta.image) {
+        if (meta.image.includes(".")) {
+          t[i].image = meta.image;
+        } else {
+          t[i].image = "https://ipfs.moralis.io:2053/ipfs/" + meta.image;
         }
       }
-
-      setNfts(t);
-      setFilteredNfts(t);
     }
+
+    setNfts(t);
+    setFilteredNfts(t);
   }
+
+  useEffect(() => {
+    if (idFilter === "" && nameFilter === "") {
+      return setFilteredNfts(nfts);
+    }
+
+    let filNfts = [];
+
+    for (let i = 0; i < nfts.length; i++) {
+      if (
+        nfts[i].name.toLowerCase().includes(nameFilter) &&
+        idFilter.length === 0
+      ) {
+        filNfts.push(nfts[i]);
+      } else if (
+        nfts[i].token_id.includes(idFilter) &&
+        nameFilter.length === 0
+      ) {
+        filNfts.push(nfts[i]);
+      } else if (
+        nfts[i].token_id.includes(idFilter) &&
+        nfts[i].name.toLowerCase().includes(nameFilter)
+      ) {
+        filNfts.push(nfts[i]);
+      }
+    }
+
+    setFilteredNfts(filNfts);
+  }, [nameFilter, idFilter]);
+
 
   return (
     <>
